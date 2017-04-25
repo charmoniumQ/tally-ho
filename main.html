@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+		<script src="https://unpkg.com/react@latest/dist/react.js"></script>
+		<script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
+		<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+		<style>
+		 table#ballot td {
+			 border: 1px solid black;
+		 }
+		</style>
+	</head>
+	<body>
+		<div id="root"></div>
+
+		<script type="text/babel">
+		 class CandidateInput extends React.Component {
+			 constructor(props) {
+				 super(props);
+				 this.handleChange = this.handleChange.bind(this);
+			 }
+			 render() {
+				 return <textarea
+							onChange={this.handleChange}
+							id="candidate-input"
+							rows="5" cols="20"
+							defaultValue="Write all of your candidates on a separate line.">
+				 </textarea>;
+			 }
+			 handleChange(event) {
+				 // TODO: filter empty-string candidates
+				 const candidates = event.target.value.split('\n');
+				 this.props.onChange(candidates);
+			 }
+		 }
+		 class Ballot extends React.Component {
+			 render() {
+				 if (this.props.candidates.length == 0 || this.props.candidates[0].length == 0) {
+					 return <table></table>
+				 }
+				 const outerThis = this;
+				 const candidateHeader = this.props.candidates.map(function(candidate, i) {
+					 return <td key={i}><b>{candidate}</b></td>;
+				 });
+
+				 const candidateOptionss = this.props.candidates.map(function(candidate, i) {
+					 return <td key={i}>
+						 <CandidateOptions candidate={candidate} n={outerThis.props.candidates.length} />
+					 </td>;
+				 });
+				 return <table id="ballot">
+					 <thead><tr>{candidateHeader}</tr></thead>
+					 <tbody><tr>{candidateOptionss}</tr></tbody>
+				 </table>;
+			 }
+		 }
+		 class CandidateOptions extends React.Component {
+			 render() {
+				 const outerThis = this;
+				 const options = _.range(1, this.props.n + 1).map(function(m) {
+					 return <CandidateOption candidate={outerThis.props.candidate} m={m} key={m} />;
+				 });
+				 return <form>{options}</form>;
+			 }
+		 }
+		 class CandidateOption extends React.Component {
+			 render() {
+				 return <span>
+					 <input type="radio" name={this.props.candidate} value={this.props.m} />
+					 {this.props.m} <br />
+				 </span>;
+				 // TODO: Make sure user does not check two numbers for 3
+			 }
+		 }
+		 class Election extends React.Component {
+			 constructor(props) {
+				 super(props);
+				 this.state = {candidates: []}
+				 this.handleChange = this.handleChange.bind(this);
+			 }
+			 handleChange(candidates) {
+				 this.setState({candidates: candidates});
+			 }
+			 render() {
+				 return  <div>
+					 <CandidateInput onChange={this.handleChange}/>
+					 <Ballot candidates={this.state.candidates}/>
+				 </div>;
+			 }
+		 }
+		 ReactDOM.render(
+			 <Election />,
+			 document.getElementById('root')
+		 );
+		</script>
+	</body>
+</html>
